@@ -1,6 +1,5 @@
 module cpu_tb;
-  reg clk;
-  reg reset;
+  reg clk, reset;
 
   cpu main (
       .clk  (clk),
@@ -14,14 +13,14 @@ module cpu_tb;
     clk   = 0;
     reset = 1;  // Init reset to 1
 
-    #20 reset = 0;  // Deassert reset after 20 time units
-    #100 $finish;  // Finish sim after 100 time units
+    #5 reset = 0;  // Deassert reset after 5 time units
+    #10 $finish;  // Finish sim after 10 time units
   end
 
   // Logging
   initial begin
     $dumpfile("build/waveform.vcd");
-    $dumpvars(0, testbench);
+    $dumpvars(0, cpu_tb);
   end
 
 
