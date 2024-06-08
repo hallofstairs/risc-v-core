@@ -1,8 +1,0 @@
-{
-    "[verilog]": {
-        "editor.tabSize": 2
-    },
-    "[systemverilog]": {
-        "editor.tabSize": 2
-    }
-}
