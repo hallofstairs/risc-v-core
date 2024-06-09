@@ -1,6 +1,6 @@
 // 32-bit, single-cycle RISC-V CPU
 
-parameter int InitPC = 32'h0;
+localparam int InitPC = 32'h0;
 
 module cpu (
     input wire clk,
@@ -66,7 +66,6 @@ module cpu (
   );
 
 endmodule
-
 
 module instruction_memory (
     input  wire [31:0] read_address,
