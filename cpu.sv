@@ -1,24 +1,28 @@
 // 32-bit, single-cycle RISC-V CPU
 
+parameter int InitPC = 32'h0;
+
 module cpu (
     input wire clk,
     input wire reset
 );
   reg  [31:0] pc;
   wire [ 4:0] alu_op;
-  wire [31:0] instruction, read_data_1, read_data_2, op_result;
+  wire alu_src, reg_write;
+  wire [31:0] instruction, read_data_1, read_data_2, alu_operand, alu_out;
 
   initial begin
-    // $display("CPU initialized.");
-    pc = 0;
+    pc = InitPC;
   end
 
   always_ff @(posedge clk) begin
     if (reset) pc <= 0;
     else pc <= pc + 4;
 
-    // $display("PC: %h, Instruction: %h, ALU OP: %h, R1: %h, R2: %h", pc, instruction, alu_op,
-    //          read_data_1, read_data_2);
+    // $display(
+    //     "PC: %h, Instruction: %h, ALU OP: %h, R1: %h, R2: %h, RegWrite: %h, rd: %h, alu_r: %h, x1: %h",
+    //     pc, instruction[6:0], alu_op, read_data_1, alu_operand, reg_write, instruction[11:7],
+    //     alu_out, reg_file.regs[1]);
   end
 
 
@@ -30,24 +34,37 @@ module cpu (
 
   // Connect to registers -- read rs1, rs2; eventually write
   register_file reg_file (
-      .rd     (instruction[11:7]),
-      .rs1    (instruction[19:15]),
-      .rs2    (instruction[24:20]),
-      .rs1_out(read_data_1),
-      .rs2_out(read_data_2),
-      .rd_data(op_result)
+      .clk      (clk),
+      .rd       (instruction[11:7]),
+      .rs1      (instruction[19:15]),
+      .rs2      (instruction[24:20]),
+      .rs1_out  (read_data_1),
+      .rs2_out  (read_data_2),
+      .rd_data  (alu_out),
+      .reg_write(reg_write)
   );
 
   controller control (
       .opcode(instruction[6:0]),
-      .alu_op(alu_op)
+      .funct3(instruction[14:12]),
+      .funct7(instruction[31:25]),
+      .alu_op(alu_op),
+      .alu_src(alu_src),
+      .reg_write(reg_write)
+  );
+
+  mux alu_source (
+      .a  (read_data_2),
+      .b  (instruction[31:20]),
+      .sel(alu_src),
+      .out(alu_operand)
   );
 
   alu arith (
       .a  (read_data_1),
-      .b  (read_data_2),
+      .b  (alu_operand),
       .op (alu_op),
-      .out(op_result)
+      .out(alu_out)
   );
 
 endmodule
@@ -66,7 +83,7 @@ endmodule
 
 module register_file (
     input  wire        clk,
-    input  wire        is_write,
+    input  wire        reg_write,
     input  wire [ 4:0] rd,
     input  wire [ 4:0] rs1,
     input  wire [ 4:0] rs2,
@@ -81,7 +98,7 @@ module register_file (
   end
 
   always_ff @(posedge clk) begin
-    if (is_write) regs[rd] <= rd_data;
+    if (reg_write) regs[rd] <= rd_data;
   end
 
   assign rs1_out = regs[rs1];
@@ -93,13 +110,18 @@ module controller (
     input  wire [6:0] opcode,
     input  wire [6:0] funct7,
     input  wire [2:0] funct3,
-    output reg  [4:0] alu_op
+    output reg  [4:0] alu_op,
+    output reg        alu_src,
+    output reg        reg_write
 );
 
   always_comb begin
     case (opcode)
       // R-type
       7'b0110011: begin
+        alu_src   = 0;
+        reg_write = 1;
+
         case (funct3)
           3'h0: begin
             if (funct7 == 7'h00) alu_op = 4'b0010;  // add
@@ -108,17 +130,25 @@ module controller (
 
           default: alu_op = 0;
         endcase
+
       end
 
       // I-type
       7'b0010011: begin
+        alu_src   = 1;
+        reg_write = 1;
+
         case (funct3)
           3'h0: alu_op = 4'b0010;  // addi
           default: alu_op = 0;
         endcase
       end
 
-      default: alu_op = 0;
+      default: begin
+        alu_src = 1;
+        alu_op = 0;
+        reg_write = 0;
+      end
     endcase
   end
 
@@ -147,8 +177,11 @@ module alu (
 
 endmodule
 
-module data_memory;
-endmodule
-
-module mux;
+module mux (
+    input wire [31:0] a,
+    input wire [31:0] b,
+    input wire sel,
+    output wire [31:0] out
+);
+  assign out = sel ? b : a;
 endmodule
