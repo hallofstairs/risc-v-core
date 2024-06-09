@@ -1,3 +1,5 @@
+// CPU testbench
+
 module cpu_tb;
   logic clk, reset;
   bit test_case_1_passed;

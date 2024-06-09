@@ -26,13 +26,11 @@ module cpu (
   end
 
 
-  // Gather instruction from instruction memory
   instruction_memory instr_mem (
       .read_address(pc),
       .instruction (instruction)
   );
 
-  // Connect to registers -- read rs1, rs2; eventually write
   register_file reg_file (
       .clk      (clk),
       .rd       (instruction[11:7]),
