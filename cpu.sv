@@ -166,7 +166,7 @@ module alu (
       4'b0000: out = a & b;  // AND
       4'b0001: out = a | b;  // OR
       4'b0010: out = a + b;  // add
-      4'b0011: out = a - b;  // sub
+      4'b0011: out = b - a;  // sub
       default: out = 32'b0;
     endcase
 
