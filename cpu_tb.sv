@@ -42,7 +42,7 @@ module cpu_tb;
     end
   endtask
 
-  // Run all test cases
+  // Run simulation
   initial begin
     clk = 0;
 
