@@ -1,4 +1,4 @@
-// Implementation of a 32-bit, single-cycle RISC-V CPU
+// 32-bit, single-cycle RISC-V CPU
 
 module cpu (
     input wire clk,
@@ -9,7 +9,7 @@ module cpu (
   wire [31:0] instruction, read_data_1, read_data_2, op_result;
 
   initial begin
-    $display("CPU initialized.");
+    // $display("CPU initialized.");
     pc = 0;
   end
 
@@ -17,13 +17,13 @@ module cpu (
     if (reset) pc <= 0;
     else pc <= pc + 4;
 
-    $display("PC: %h, Instruction: %h, ALU OP: %h, R1: %h, R2: %h", pc, instruction, alu_op,
-             read_data_1, read_data_2);
+    // $display("PC: %h, Instruction: %h, ALU OP: %h, R1: %h, R2: %h", pc, instruction, alu_op,
+    //          read_data_1, read_data_2);
   end
 
 
   // Gather instruction from instruction memory
-  instruction_memory instructions (
+  instruction_memory instr_mem (
       .read_address(pc),
       .instruction (instruction)
   );
@@ -57,18 +57,10 @@ module instruction_memory (
     input  wire [31:0] read_address,
     output wire [31:0] instruction
 );
-  reg [31:0] instructions[32];
-
-  // TODO: use $readmemh or $readmemb to initialize
-  initial begin
-    instructions[0] = 32'h00000000;  // NOP
-    // instructions[1] = 32'h00100093;  // ADDI x1, x0, 1
-    // instructions[2] = 32'h00200113;  // ADDI x2, x0, 2
-    instructions[1] = 32'h00000033;  // ADD x1, x0, x0
-  end
+  reg [31:0] mem[32];
 
   // Right-shift address by two to get word address
-  assign instruction = instructions[read_address>>2];
+  assign instruction = mem[read_address>>2];
 
 endmodule
 
@@ -82,18 +74,18 @@ module register_file (
     output wire [31:0] rs1_out,
     output wire [31:0] rs2_out
 );
-  reg [31:0] registers[32];
+  reg [31:0] regs[32];
 
   initial begin
-    registers[0] = 32'b0;  // x0 is always zero
+    regs[0] = 32'b0;  // x0 is always zero
   end
 
   always_ff @(posedge clk) begin
-    if (is_write) registers[rd] <= rd_data;
+    if (is_write) regs[rd] <= rd_data;
   end
 
-  assign rs1_out = registers[rs1];
-  assign rs2_out = registers[rs2];
+  assign rs1_out = regs[rs1];
+  assign rs2_out = regs[rs2];
 
 endmodule
 
@@ -110,10 +102,18 @@ module controller (
       7'b0110011: begin
         case (funct3)
           3'h0: begin
-            if (funct7 == 7'h00) alu_op = 4'b0010;
-            else alu_op = 4'b0011;
+            if (funct7 == 7'h00) alu_op = 4'b0010;  // add
+            else alu_op = 4'b0011;  // sub
           end
 
+          default: alu_op = 0;
+        endcase
+      end
+
+      // I-type
+      7'b0010011: begin
+        case (funct3)
+          3'h0: alu_op = 4'b0010;  // addi
           default: alu_op = 0;
         endcase
       end
@@ -147,4 +147,8 @@ module alu (
 
 endmodule
 
+module data_memory;
+endmodule
 
+module mux;
+endmodule
