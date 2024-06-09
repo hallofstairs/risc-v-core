@@ -1,5 +1,5 @@
 module cpu_tb;
-  reg clk, reset;
+  logic clk, reset;
   bit test_case_1_passed;
 
   cpu main (
@@ -31,14 +31,12 @@ module cpu_tb;
       (main.reg_file.regs[3] == 32'h00000003);
 
       // Display results
-      if (test_case_1_passed) begin
-        $display("Test case 1 passed");
-      end else begin
-        $error("Test case 1 failed");
-        $display("x1 -- Expected: %h, Result: %h", 32'h00000001, main.reg_file.regs[1]);
-        $display("x2 -- Expected: %h, Result: %h", 32'h00000002, main.reg_file.regs[2]);
-        $display("x3 -- Expected: %h, Result: %h", 32'h00000003, main.reg_file.regs[3]);
-      end
+      if (test_case_1_passed) $display("Test case 1 passed");
+      else $error("Test case 1 failed");
+
+      $display("x1 -- Expected: %h, Result: %h", 32'h00000001, main.reg_file.regs[1]);
+      $display("x2 -- Expected: %h, Result: %h", 32'h00000002, main.reg_file.regs[2]);
+      $display("x3 -- Expected: %h, Result: %h", 32'h00000003, main.reg_file.regs[3]);
     end
   endtask
 
