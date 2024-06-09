@@ -18,19 +18,19 @@ module cpu_tb;
 
   task automatic test_case_1;
     begin
-      // Initialize the instruction memory with operations
+      // Initialize instruction memory
       main.instr_mem.mem[0] = 32'h00100093;  // addi x1, x0, 1
       main.instr_mem.mem[1] = 32'h00200113;  // addi x2, x0, 2
       main.instr_mem.mem[2] = 32'h002081b3;  // add x3, x1, x2
 
-      #20;  // Wait for a few clock cycles
+      #20;  // Wait
 
-      // Check the results in the register file
+      // Check register file
       test_case_1_passed = (main.reg_file.regs[1] == 32'h00000001) &&
       (main.reg_file.regs[2] == 32'h00000002) &&
       (main.reg_file.regs[3] == 32'h00000003);
 
-
+      // Display results
       if (test_case_1_passed) begin
         $display("Test case 1 passed");
       end else begin
@@ -53,8 +53,6 @@ module cpu_tb;
     reset_cpu();
     test_case_1();
 
-    // Test case 2
-    // #10;
     // reset_cpu();
     // test_case_2();
 
