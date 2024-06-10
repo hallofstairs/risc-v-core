@@ -2,6 +2,10 @@
 
 localparam int InitPC = 32'h0;
 
+// TODO:
+// load/store (memory)
+// jal, branch (PC)
+
 module cpu (
     input wire clk,
     input wire reset
@@ -114,24 +118,36 @@ module controller (
 
   always_comb begin
     case (opcode)
-      // R-type
-      7'b0110011: begin
+
+      7'b0110011: begin  // R-type
         alu_src   = 0;
         reg_write = 1;
 
         case (funct3)
           3'h0: begin
-            if (funct7 == 7'h00) alu_op = 4'b0010;  // add
+            if (funct7 == 7'h0) alu_op = 4'b0010;  // add
             else alu_op = 4'b0011;  // sub
           end
+
+          3'h4: alu_op = 4'b0100;  // xor
+          3'h6: alu_op = 4'b0001;  // or
+          3'h7: alu_op = 4'b0000;  // and
+          3'h1: alu_op = 4'b0101;  // sll
+
+          3'h5: begin
+            if (funct7 == 7'h0) alu_op = 4'b0110;  // srl
+            else alu_op = 4'b0111;  // sra
+          end
+
+          3'h2: alu_op = 4'b1000;  // slt
+          3'h3: alu_op = 4'b1001;  // sltu
 
           default: alu_op = 0;
         endcase
 
       end
 
-      // I-type
-      7'b0010011: begin
+      7'b0010011: begin  // I-type
         alu_src   = 1;
         reg_write = 1;
 
@@ -160,10 +176,19 @@ module alu (
 );
   always_comb begin
     case (op)
-      4'b0000: out = a & b;  // AND
-      4'b0001: out = a | b;  // OR
+      4'b0000: out = a & b;  // and
+      4'b0001: out = a | b;  // or
       4'b0010: out = a + b;  // add
-      4'b0011: out = b - a;  // sub
+      4'b0011: out = a - b;  // sub
+      4'b0100: out = a ^ b;  // xor
+      4'b0101: out = a << b;  // sll
+      4'b0110: out = a >> b;  // srl
+      4'b0111: out = a >>> b;  // sra
+
+      // TODO: Look at this again
+      4'b1000: out = $signed(a) < $signed(b);  // slt
+      4'b1001: out = a < b;  // sltu
+
       default: out = 32'b0;
     endcase
 
