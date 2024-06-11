@@ -57,7 +57,7 @@ module cpu (
 
   mux alu_source (
       .a  (read_data_2),
-      .b  (instruction[31:20]),
+      .b  (instruction[31:20]),  // TODO: Extend to 32 bits
       .sel(alu_src),
       .out(alu_operand)
   );
